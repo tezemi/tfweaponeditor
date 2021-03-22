@@ -1,7 +1,6 @@
 #pragma semicolon 1
 
 #include <tf2>
-#include <cw3>
 #include <menus>
 #include <files>
 #include <tf2items>
@@ -28,7 +27,7 @@ public void OnPluginStart()
 
 public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadcast)
 {
-    int userID = event.GetInt("userid");                                  
+    int userID = event.GetInt("userid");
     int clientID = GetClientOfUserId(userID);
  
     if (!ClientIsValid(clientID))
@@ -79,10 +78,9 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
     
     char dir[PLATFORM_MAX_PATH];
     BuildPath(Path_SM, dir, sizeof(dir), "scripting/tfweaponeditor/configs");
-
     if (!DirExists(dir))
     {
-        SetFailState("There is no configs/tfweaponeditor directory. Create a folder in configs called tfweaponeditor to fix.");
+        SetFailState("[TFWE] There is no scripting/tfweaponeditor/configs directory. Create a folder in configs called scripting/tfweaponeditor/configs to fix.");
 
         return Plugin_Continue;
     }
@@ -94,9 +92,7 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
     while (ReadDirEntry(openedDir, file, sizeof(file), type))
     {
         if (type != FileType_File)
-        {
             continue;
-        } 
 
         Format(file, sizeof(file), "%s/%s", dir, file);
 
@@ -104,38 +100,47 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
 
         if (!FileToKeyValues(KVPs, file))
 		{
-			PrintToServer("[TF Constructor] Could not parse '%s'. File won't be loaded.", dir);
+			PrintToServer("[TFWE] Could not parse '%s'. File won't be loaded.", dir);
 			CloseHandle(KVPs);
 
 			continue;
 		}
 
-        bool loaded_weapon = false;
+        bool enabled = true;
+        char enabled_string[DEFAULT_STRING_SIZE];
+        if (KvGetString(KVPs, "enabled", enabled_string, sizeof(enabled_string), "true"))
+        {
+            if (strcmp(enabled_string, "true", false) == 0)
+            {
+                enabled = true;
+            }
+            else
+            {
+                enabled = false;
+            }
+        }
+
+        if (!enabled)
+        {
+            CloseHandle(KVPs); 
+            continue;
+        }
+        
         int weaponID = KvGetNum(KVPs, "base_weapon", 0);
         if (primarySlotIDI == weaponID)
         {
             ApplyWeaponConfig(KVPs, primarySlotEID);
-            loaded_weapon = true;
+            PrintWeaponDescription(clientID, KVPs, "Primary Weapon");
         }
         else if (secondarySlotIDI == weaponID)
         {
             ApplyWeaponConfig(KVPs, secondarySlotEID);
-            loaded_weapon = true;
+            PrintWeaponDescription(clientID, KVPs, "Secondary Weapon");
         }
         else if (meleeSlotIDI == weaponID)
         {
             ApplyWeaponConfig(KVPs, meleeSlotEID);
-            loaded_weapon = true;
-        }
-
-        if (loaded_weapon)
-        {
-            char weapon_desc[DEFAULT_STRING_SIZE];
-            KvGetString(KVPs, "description", weapon_desc, sizeof(weapon_desc), "");
-            if (strcmp(weapon_desc, "", false) != 0)
-            {
-                PrintToChat(clientID, weapon_desc);
-            }
+            PrintWeaponDescription(clientID, KVPs, "Melee Weapon");
         }
 
         CloseHandle(KVPs);  
@@ -182,5 +187,15 @@ static void ApplyAttributesFromKey(Handle KVPs, char[] key, int weaponEID)
         while (KvGotoNextKey(KVPs));
 
         KvRewind(KVPs);
+    }
+}
+
+static void PrintWeaponDescription(int clientID, Handle KVPs, char[] header)
+{
+    char weapon_desc[DEFAULT_STRING_SIZE];
+    KvGetString(KVPs, "description", weapon_desc, sizeof(weapon_desc), "");
+    if (strcmp(weapon_desc, "", false) != 0)
+    {
+        PrintToChat(clientID, "%s: %s", header, weapon_desc);
     }
 }
