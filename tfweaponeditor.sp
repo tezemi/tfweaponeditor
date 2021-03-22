@@ -73,9 +73,35 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
     }
 
     //
-    //  TODO: Get other slots
+    //  Get Utility Slot
     //
-    
+    int utilitySlotIDI = -1;
+    int utilitySlotEID = TF2_GetPlayerLoadoutSlot(clientID, TF2LoadoutSlot_Utility);
+    if (utilitySlotEID != -1)
+    {
+        utilitySlotIDI = GetEntProp(utilitySlotEID, Prop_Send, "m_iItemDefinitionIndex");
+    }
+
+    //
+    //  Get Building Slot
+    //
+    int buildingSlotIDI = -1;
+    int buildingSlotEID = TF2_GetPlayerLoadoutSlot(clientID, TF2LoadoutSlot_Building);
+    if (buildingSlotEID != -1)
+    {
+        buildingSlotIDI = GetEntProp(buildingSlotEID, Prop_Send, "m_iItemDefinitionIndex");
+    }
+
+    //
+    //  Get PDA2 Slot
+    //
+    int pdaSlotIDI = -1;
+    int pdaSlotEID = TF2_GetPlayerLoadoutSlot(clientID, TF2LoadoutSlot_PDA2);
+    if (pdaSlotEID != -1)
+    {
+        pdaSlotIDI = GetEntProp(pdaSlotEID, Prop_Send, "m_iItemDefinitionIndex");
+    }
+
     char dir[PLATFORM_MAX_PATH];
     BuildPath(Path_SM, dir, sizeof(dir), "scripting/tfweaponeditor/configs");
     if (!DirExists(dir))
@@ -141,6 +167,21 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
         {
             ApplyWeaponConfig(KVPs, meleeSlotEID);
             PrintWeaponDescription(clientID, KVPs, "Melee Weapon");
+        }
+        else if (utilitySlotIDI == weaponID)
+        {
+            ApplyWeaponConfig(KVPs, utilitySlotEID);
+            PrintWeaponDescription(clientID, KVPs, "Utility");
+        }
+        else if (buildingSlotIDI == weaponID)
+        {
+            ApplyWeaponConfig(KVPs, buildingSlotEID);
+            PrintWeaponDescription(clientID, KVPs, "Building");
+        }
+        else if (pdaSlotIDI == weaponID)
+        {
+            ApplyWeaponConfig(KVPs, pdaSlotEID);
+            PrintWeaponDescription(clientID, KVPs, "PDA");
         }
 
         CloseHandle(KVPs);  
