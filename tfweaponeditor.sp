@@ -11,6 +11,8 @@
 
 #define DEFAULT_STRING_SIZE 64
 
+GlobalForward g_globalForwards[64];
+
 public Plugin:myinfo = 
 {
 	name = "TF Weapon Editor",
@@ -23,6 +25,8 @@ public Plugin:myinfo =
 public void OnPluginStart()
 {
     HookEvent("post_inventory_application", OnPlayerRefreshed);    
+
+    g_globalForwards[0] = new GlobalForward("OnPlayerRunCmd_220", ET_Event, Param_Cell, Param_Cell);
 }
 
 public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadcast)
@@ -194,6 +198,29 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
     */
     
     return Plugin_Continue;
+}
+
+public Action OnPlayerRunCmd(int clientID, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
+{
+    int primarySlotIDI = -1;
+    int primarySlotEID = TF2_GetPlayerLoadoutSlot(clientID, TF2LoadoutSlot_Primary);
+    if (primarySlotEID != -1)
+    {
+        primarySlotIDI = GetEntProp(primarySlotEID, Prop_Send, "m_iItemDefinitionIndex");
+    }
+
+    Action result;
+
+    if (primarySlotIDI == 220)
+    {
+        Call_StartForward(g_globalForwards[0]);
+        Call_PushCell(clientID);
+        Call_PushCell(buttons);
+
+        Call_Finish(result);
+    }
+
+    return result;
 }
 
 static bool ClientIsValid(int clientID)
