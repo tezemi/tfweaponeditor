@@ -153,6 +153,7 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
         }
         
         int weaponID = KvGetNum(KVPs, "base_weapon", 0);
+
         if (primarySlotIDI == weaponID)
         {
             ApplyWeaponConfig(KVPs, primarySlotEID);
@@ -208,6 +209,18 @@ static bool ClientIsValid(int clientID)
 
 static void ApplyWeaponConfig(Handle KVPs, int weaponEID)
 {
+    int clip = KvGetNum(KVPs, "clip", -1);
+    if (clip != -1)
+    {
+        SetWeaponClip(weaponEID, clip);
+    }
+
+    int ammo = KvGetNum(KVPs, "ammo", -1);
+    if (ammo != -1)
+    {
+        SetWeaponAmmo(weaponEID, ammo);
+    }
+
     ApplyAttributesFromKey(KVPs, "mod_attributes", weaponEID);
     ApplyAttributesFromKey(KVPs, "add_attributes", weaponEID);
 }
@@ -239,4 +252,23 @@ static void PrintWeaponDescription(int clientID, Handle KVPs, char[] header)
     {
         PrintToChat(clientID, "%s: %s", header, weapon_desc);
     }
+}
+
+static SetWeaponAmmo(weapon, ammo)
+{
+	int owner = GetEntPropEnt(weapon, Prop_Send, "m_hOwnerEntity");
+	if (owner == -1)
+        return;
+
+	int offset = GetEntProp(weapon, Prop_Send, "m_iPrimaryAmmoType", 1)*4;
+	int ammo_table = FindSendPropInfo("CTFPlayer", "m_iAmmo");
+    
+	SetEntData(owner, ammo_table + offset, ammo, 4, true);
+}
+
+static SetWeaponClip(weapon, newClip)
+{
+	int ammo_table = FindSendPropInfo("CTFWeaponBase", "m_iClip1");
+
+	SetEntData(weapon, ammo_table, newClip, 4, true);
 }
