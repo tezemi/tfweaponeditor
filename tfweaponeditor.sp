@@ -152,37 +152,93 @@ public Action OnPlayerRefreshed(Event event, const char[] name, bool dontBroadca
             continue;
         }
         
-        int weaponID = KvGetNum(KVPs, "base_weapon", 0);
+        char weaponIDAsString[DEFAULT_STRING_SIZE];
+        KvGetString(KVPs, "base_weapon", weaponIDAsString, DEFAULT_STRING_SIZE, "invalid");
 
-        if (primarySlotIDI == weaponID)
+        if (strcmp(weaponIDAsString, "invalid", true) == 0)
         {
-            ApplyWeaponConfig(KVPs, primarySlotEID);
-            PrintWeaponDescription(clientID, KVPs, "Primary Weapon");
+			PrintToServer("[TFWE] Could not parse '%s'. No base weapon found. File won't be loaded.", dir);
+			CloseHandle(KVPs);
+
+			continue;
         }
-        else if (secondarySlotIDI == weaponID)
+
+        if (StrContains(weaponIDAsString, ",", false) >= 0)
         {
-            ApplyWeaponConfig(KVPs, secondarySlotEID);
-            PrintWeaponDescription(clientID, KVPs, "Secondary Weapon");
+            char weaponStrings[32][DEFAULT_STRING_SIZE];
+
+            int numberOfWeapons = ExplodeString(weaponIDAsString, ",", weaponStrings, 32, DEFAULT_STRING_SIZE, false);
+
+            for (int i = 0; i < numberOfWeapons; i++)
+            {
+                int weaponID = StringToInt(weaponStrings[i], 10);
+
+                if (primarySlotIDI == weaponID)
+                {
+                    ApplyWeaponConfig(KVPs, primarySlotEID);
+                    PrintWeaponDescription(clientID, KVPs, "Primary Weapon");
+                }
+                else if (secondarySlotIDI == weaponID)
+                {
+                    ApplyWeaponConfig(KVPs, secondarySlotEID);
+                    PrintWeaponDescription(clientID, KVPs, "Secondary Weapon");
+                }
+                else if (meleeSlotIDI == weaponID)
+                {
+                    ApplyWeaponConfig(KVPs, meleeSlotEID);
+                    PrintWeaponDescription(clientID, KVPs, "Melee Weapon");
+                }
+                else if (utilitySlotIDI == weaponID)
+                {
+                    ApplyWeaponConfig(KVPs, utilitySlotEID);
+                    PrintWeaponDescription(clientID, KVPs, "Utility");
+                }
+                else if (buildingSlotIDI == weaponID)
+                {
+                    ApplyWeaponConfig(KVPs, buildingSlotEID);
+                    PrintWeaponDescription(clientID, KVPs, "Building");
+                }
+                else if (pdaSlotIDI == weaponID)
+                {
+                    ApplyWeaponConfig(KVPs, pdaSlotEID);
+                    PrintWeaponDescription(clientID, KVPs, "PDA");
+                }
+            }
         }
-        else if (meleeSlotIDI == weaponID)
+        else
         {
-            ApplyWeaponConfig(KVPs, meleeSlotEID);
-            PrintWeaponDescription(clientID, KVPs, "Melee Weapon");
-        }
-        else if (utilitySlotIDI == weaponID)
-        {
-            ApplyWeaponConfig(KVPs, utilitySlotEID);
-            PrintWeaponDescription(clientID, KVPs, "Utility");
-        }
-        else if (buildingSlotIDI == weaponID)
-        {
-            ApplyWeaponConfig(KVPs, buildingSlotEID);
-            PrintWeaponDescription(clientID, KVPs, "Building");
-        }
-        else if (pdaSlotIDI == weaponID)
-        {
-            ApplyWeaponConfig(KVPs, pdaSlotEID);
-            PrintWeaponDescription(clientID, KVPs, "PDA");
+            int weaponID = StringToInt(weaponIDAsString, 10);
+
+            if (primarySlotIDI == weaponID)
+            {
+                ApplyWeaponConfig(KVPs, primarySlotEID);
+                PrintWeaponDescription(clientID, KVPs, "Primary Weapon");
+            }
+            else if (secondarySlotIDI == weaponID)
+            {
+                ApplyWeaponConfig(KVPs, secondarySlotEID);
+                PrintWeaponDescription(clientID, KVPs, "Secondary Weapon");
+            }
+            else if (meleeSlotIDI == weaponID)
+            {
+                ApplyWeaponConfig(KVPs, meleeSlotEID);
+                PrintWeaponDescription(clientID, KVPs, "Melee Weapon");
+            }
+            else if (utilitySlotIDI == weaponID)
+            {
+                ApplyWeaponConfig(KVPs, utilitySlotEID);
+                PrintWeaponDescription(clientID, KVPs, "Utility");
+            }
+            else if (buildingSlotIDI == weaponID)
+            {
+                ApplyWeaponConfig(KVPs, buildingSlotEID);
+                PrintWeaponDescription(clientID, KVPs, "Building");
+            }
+            else if (pdaSlotIDI == weaponID)
+            {
+                ApplyWeaponConfig(KVPs, pdaSlotEID);
+                PrintWeaponDescription(clientID, KVPs, "PDA");
+            }
         }
 
         CloseHandle(KVPs);  
